@@ -2,14 +2,58 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'login_page.dart';
+import 'profile_page.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
+}    
+    
+class _HomePageState extends State<HomePage> {    
+    int _selectedIndex = 0;  
+
+  static final List<Widget> _pages = <Widget>[
+    HomeContent(),
+    const ProfilePage(),
+  ];
+
+  void _onItemTapped(int index) {  
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: _pages.elementAt(_selectedIndex),  
+      ),
+      bottomNavigationBar: BottomNavigationBar(
+        items: const <BottomNavigationBarItem>[
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Home',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: 'Profile',
+          ),
+        ],
+        currentIndex: _selectedIndex,  
+        selectedItemColor: Colors.blue,
+        onTap: _onItemTapped,  
+      ),
+    );
+  }
 }
 
-class _HomePageState extends State<HomePage> {
+class HomeContent extends StatelessWidget {
   final _postController = TextEditingController();
+
+  HomeContent({super.key});
 
   Future<void> _post() async {
     if (_postController.text.isNotEmpty) {
@@ -26,15 +70,15 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Home'),
+        title: const Text('Home'),
         actions: [
           IconButton(
-            icon: Icon(Icons.logout),
+            icon: const Icon(Icons.logout),
             onPressed: () async {
               await FirebaseAuth.instance.signOut();
               Navigator.pushReplacement(
                 context,
-                MaterialPageRoute(builder: (context) => LoginPage()),
+                MaterialPageRoute(builder: (context) => const LoginPage()),
               );
             },
           ),
@@ -46,12 +90,12 @@ class _HomePageState extends State<HomePage> {
           children: [
             TextField(
               controller: _postController,
-              decoration: InputDecoration(labelText: 'What\'s on your mind?'),
+              decoration: const InputDecoration(labelText: 'What\'s on your mind?'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: _post,
-              child: Text('Post'),
+              child: const Text('Post'),
             ),
             Expanded(
               child: StreamBuilder<QuerySnapshot>(
@@ -64,7 +108,7 @@ class _HomePageState extends State<HomePage> {
                     return Center(child: Text('Error: ${snapshot.error}'));
                   }
                   if (snapshot.connectionState == ConnectionState.waiting) {
-                    return Center(child: CircularProgressIndicator());
+                    return const Center(child: CircularProgressIndicator());
                   }
                   return ListView(
                     children: snapshot.data!.docs.map((document) {
