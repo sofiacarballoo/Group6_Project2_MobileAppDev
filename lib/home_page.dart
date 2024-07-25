@@ -9,17 +9,17 @@ class HomePage extends StatefulWidget {
 
   @override
   _HomePageState createState() => _HomePageState();
-}    
-    
-class _HomePageState extends State<HomePage> {    
-    int _selectedIndex = 0;  
+}
+
+class _HomePageState extends State<HomePage> {
+  int _selectedIndex = 0;
 
   static final List<Widget> _pages = <Widget>[
     HomeContent(),
     const ProfilePage(),
   ];
 
-  void _onItemTapped(int index) {  
+  void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
@@ -29,7 +29,7 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        child: _pages.elementAt(_selectedIndex),  
+        child: _pages.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
@@ -42,9 +42,9 @@ class _HomePageState extends State<HomePage> {
             label: 'Profile',
           ),
         ],
-        currentIndex: _selectedIndex,  
+        currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,
-        onTap: _onItemTapped,  
+        onTap: _onItemTapped,
       ),
     );
   }
@@ -63,6 +63,19 @@ class HomeContent extends StatelessWidget {
         'userId': FirebaseAuth.instance.currentUser!.uid,
       });
       _postController.clear();
+    }
+  }
+
+  Future<String> _getUserName(String userId) async {
+    try {
+      DocumentSnapshot userDoc =
+          await FirebaseFirestore.instance.collection('users').doc(userId).get();
+      String name = userDoc['name'] ?? 'Unknown';
+      print('Retrieved name for user $userId: $name');
+      return name;
+    } catch (e) {
+      print('Error retrieving name for user $userId: $e');
+      return 'Unknown';
     }
   }
 
@@ -90,7 +103,7 @@ class HomeContent extends StatelessWidget {
           children: [
             TextField(
               controller: _postController,
-              decoration: const InputDecoration(labelText: 'What\'s on your mind?'),
+              decoration: const InputDecoration(labelText: "What's on your mind?"),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -112,9 +125,21 @@ class HomeContent extends StatelessWidget {
                   }
                   return ListView(
                     children: snapshot.data!.docs.map((document) {
-                      return ListTile(
-                        title: Text(document['text']),
-                        subtitle: Text(document['userId']),
+                      return FutureBuilder<String>(
+                        future: _getUserName(document['userId']),
+                        builder: (context, userNameSnapshot) {
+                          if (userNameSnapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return ListTile(
+                              title: Text(document['text']),
+                              subtitle: const Text('Loading...'),
+                            );
+                          }
+                          return ListTile(
+                            title: Text(document['text']),
+                            subtitle: Text(userNameSnapshot.data ?? 'Unknown'),
+                          );
+                        },
                       );
                     }).toList(),
                   );
