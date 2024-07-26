@@ -1,0 +1,47 @@
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = "../build"
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+}
+subprojects {
+    project.evaluationDependsOn(":app")
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}
+
+buildscript {
+    ext.kotlin_version = '1.8.22' // Ensure this matches the version you're using
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        // Other classpath dependencies
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+subprojects {
+    configurations.all {
+        resolutionStrategy {
+            force "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+            force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+        }
+    }
+}
